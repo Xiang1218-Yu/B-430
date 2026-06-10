@@ -282,6 +282,211 @@
             }
         }
 
+        /* ===== 图鉴模块样式 ===== */
+        #album-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 2, 6, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+        }
+
+        #album-overlay.active {
+            display: flex;
+        }
+
+        #album-canvas-wrap {
+            position: absolute;
+            inset: 0;
+        }
+
+        #album-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #album-topbar {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #album-topbar > * {
+            pointer-events: auto;
+        }
+
+        #album-title {
+            font-size: 22px;
+            color: var(--primary);
+            letter-spacing: 4px;
+            font-weight: 600;
+        }
+
+        #album-title small {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        #album-layout-switcher {
+            display: flex;
+            gap: 8px;
+            background: rgba(15, 15, 20, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 4px;
+        }
+
+        .layout-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 18px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 13px;
+            letter-spacing: 1px;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+
+        .layout-btn.active {
+            background: var(--primary);
+            color: #000;
+            font-weight: 600;
+        }
+
+        #album-close {
+            background: rgba(255, 69, 0, 0.15);
+            border: 1px solid var(--accent);
+            color: #fff;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.25s;
+        }
+
+        #album-close:hover {
+            background: var(--accent);
+        }
+
+        #album-detail-panel {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%) translateX(120%);
+            width: 320px;
+            max-height: 70vh;
+            overflow-y: auto;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 3;
+        }
+
+        #album-detail-panel.active {
+            transform: translateY(-50%) translateX(0);
+        }
+
+        #album-detail-name {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        #album-detail-id {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .album-meaning-row {
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .album-meaning-row b {
+            color: var(--secondary);
+            display: block;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+            font-size: 11px;
+        }
+
+        #album-history-title {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: var(--secondary);
+            margin-bottom: 12px;
+        }
+
+        #album-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #album-history-list li {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            color: #ccc;
+        }
+
+        #album-empty {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            font-size: 16px;
+            letter-spacing: 2px;
+            display: none;
+        }
+
+        #album-empty.active {
+            display: block;
+        }
+
+        #album-rotate-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 12px;
+            letter-spacing: 2px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        #album-rotate-hint.active {
+            display: block;
+        }
+
         /* 响应式调整 */
         @media (max-width: 768px) {
             #side-history {
@@ -335,6 +540,35 @@
             (Space)</button>
         <button class="icon-btn" id="btn-mode"
             style="background: rgba(255,215,0,0.2); border-color: #ffd700; color: #ffd700;">切换交互模式</button>
+        <button class="icon-btn" id="btn-album"
+            style="background: rgba(120,80,200,0.2); border-color: #b48dff; color: #e0c8ff;">塔罗图鉴</button>
+    </div>
+
+    <!-- 塔罗收藏图鉴 -->
+    <div id="album-overlay">
+        <div id="album-canvas-wrap"></div>
+        <div id="album-topbar">
+            <div id="album-title">
+                塔罗图鉴
+                <small id="album-progress">已收集 0 / 22</small>
+            </div>
+            <div id="album-layout-switcher">
+                <button class="layout-btn active" data-layout="grid">网格</button>
+                <button class="layout-btn" data-layout="spiral">螺旋</button>
+                <button class="layout-btn" data-layout="ring">环形</button>
+            </div>
+            <button id="album-close" title="关闭">×</button>
+        </div>
+        <div id="album-empty">尚未解锁任何卡牌<br><span style="font-size:12px;opacity:0.6;">完成一次占卜以收录卡牌</span></div>
+        <div id="album-detail-panel" class="glass-panel">
+            <div id="album-detail-name">—</div>
+            <div id="album-detail-id">—</div>
+            <div class="album-meaning-row"><b>正位</b><span id="album-detail-up">—</span></div>
+            <div class="album-meaning-row"><b>逆位</b><span id="album-detail-rev">—</span></div>
+            <div id="album-history-title">抽取历史 (<span id="album-history-count">0</span>)</div>
+            <ul id="album-history-list"></ul>
+        </div>
+        <div id="album-rotate-hint">拖拽旋转 · 滚轮缩放 · 360°查看</div>
     </div>
 
     <script type="importmap">
@@ -677,6 +911,9 @@
                 <span class="${isRev ? 'tag-rev' : 'tag-up'}">${isRev ? '逆位' : '正位'}</span>
             `;
             list.prepend(item);
+
+            // 写入图鉴收藏
+            CollectionStore.record(data, isRev);
         }
 
         // --- 手势教程与权限引导 ---
@@ -1005,6 +1242,455 @@
 
         animate();
         setupMediaPipe();
+
+        /* ==========================================================
+         * 塔罗收藏图鉴模块（单一职责拆分）
+         * - CollectionStore: 持久化存储（解锁列表 / 抽取历史）
+         * - CardTextureFactory: 共享纹理生成
+         * - AlbumLayouts: 三种布局策略（网格 / 螺旋 / 环形）
+         * - AlbumScene: 独立 3D 场景渲染与交互
+         * - AlbumDetail: 详情面板 UI 渲染
+         * - AlbumController: 总装与生命周期
+         * ========================================================== */
+
+        /* ---------- 1. 持久化存储 ---------- */
+        const CollectionStore = (() => {
+            const KEY_UNLOCK = 'mt_album_unlocks';
+            const KEY_HISTORY = 'mt_album_history';
+
+            const safeParse = (raw, fallback) => {
+                try { return raw ? JSON.parse(raw) : fallback; }
+                catch (_) { return fallback; }
+            };
+
+            const readUnlocks = () => safeParse(localStorage.getItem(KEY_UNLOCK), {});
+            const readHistory = () => safeParse(localStorage.getItem(KEY_HISTORY), {});
+
+            const writeUnlocks = (v) => localStorage.setItem(KEY_UNLOCK, JSON.stringify(v));
+            const writeHistory = (v) => localStorage.setItem(KEY_HISTORY, JSON.stringify(v));
+
+            return {
+                /** 记录一次抽取：标记解锁 + 追加历史 */
+                record(data, isReversed) {
+                    const unlocks = readUnlocks();
+                    if (!unlocks[data.id]) unlocks[data.id] = { firstAt: Date.now() };
+                    writeUnlocks(unlocks);
+
+                    const history = readHistory();
+                    if (!history[data.id]) history[data.id] = [];
+                    history[data.id].push({
+                        at: Date.now(),
+                        reversed: !!isReversed
+                    });
+                    writeHistory(history);
+
+                    document.dispatchEvent(new CustomEvent('album:updated'));
+                },
+
+                /** 获取所有已解锁的卡牌（带元数据） */
+                listUnlocked() {
+                    const unlocks = readUnlocks();
+                    return TAROT_DB
+                        .filter(d => unlocks[d.id])
+                        .map(d => ({ ...d, firstAt: unlocks[d.id].firstAt }));
+                },
+
+                /** 获取某张卡的抽取历史（按时间倒序） */
+                historyOf(id) {
+                    const history = readHistory();
+                    return (history[id] || []).slice().sort((a, b) => b.at - a.at);
+                },
+
+                totalCount: () => TAROT_DB.length,
+                unlockedCount: () => Object.keys(readUnlocks()).length
+            };
+        })();
+
+        /* ---------- 2. 卡牌纹理工厂（图鉴专用，独立缓存） ---------- */
+        const CardTextureFactory = (() => {
+            const cache = new Map();
+            const albumLoader = new THREE.TextureLoader();
+
+            const loadOne = (data) => {
+                if (cache.has(data.id)) return Promise.resolve(cache.get(data.id));
+                return new Promise((resolve) => {
+                    albumLoader.load(getCardImageUrl(data.id),
+                        (tex) => {
+                            tex.anisotropy = 8;
+                            tex.colorSpace = THREE.SRGBColorSpace;
+                            cache.set(data.id, tex);
+                            resolve(tex);
+                        },
+                        undefined,
+                        () => {
+                            const tex = generateProceduralTexture(data);
+                            cache.set(data.id, tex);
+                            resolve(tex);
+                        }
+                    );
+                });
+            };
+
+            return { loadOne };
+        })();
+
+        /* ---------- 3. 布局策略 ---------- */
+        const AlbumLayouts = {
+            /** 网格布局：固定列数 */
+            grid(count, i) {
+                const cols = Math.max(4, Math.ceil(Math.sqrt(count)));
+                const gapX = 3.0, gapY = 4.6;
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const totalCols = Math.min(count, cols);
+                return {
+                    x: (col - (totalCols - 1) / 2) * gapX,
+                    y: -row * gapY + Math.floor((count - 1) / cols) * gapY / 2,
+                    z: 0,
+                    rotY: 0
+                };
+            },
+
+            /** 螺旋布局：阿基米德螺线 + 高度递增 */
+            spiral(count, i) {
+                const angleStep = 0.55;
+                const radiusStep = 0.42;
+                const heightStep = 0.35;
+                const a = i * angleStep;
+                const r = 3 + i * radiusStep;
+                return {
+                    x: Math.cos(a) * r,
+                    y: i * heightStep - count * heightStep / 2,
+                    z: Math.sin(a) * r,
+                    rotY: -a + Math.PI / 2
+                };
+            },
+
+            /** 环形布局：一圈或多圈环 */
+            ring(count, i) {
+                const perRing = 12;
+                const ringIdx = Math.floor(i / perRing);
+                const inRing = i % perRing;
+                const ringTotal = Math.min(perRing, count - ringIdx * perRing);
+                const radius = 7 + ringIdx * 0.8;
+                const angle = (inRing / ringTotal) * Math.PI * 2;
+                return {
+                    x: Math.cos(angle) * radius,
+                    y: ringIdx * 4.8 - 2,
+                    z: Math.sin(angle) * radius,
+                    rotY: -angle + Math.PI / 2
+                };
+            }
+        };
+
+        /* ---------- 4. 图鉴 3D 场景 ---------- */
+        const AlbumScene = (() => {
+            const CARD_W = 2.2, CARD_H = 3.6, CARD_D = 0.08;
+            let aScene, aCamera, aRenderer, aControls;
+            let container, canvasParent;
+            let cardMeshes = [];
+            let raycaster, mouse;
+            let focusedMesh = null;
+            let focusedOriginal = null;
+            let running = false;
+            let onSelect = null;
+
+            const buildCard = async (data) => {
+                const tex = await CardTextureFactory.loadOne(data);
+                const geom = new THREE.BoxGeometry(CARD_W, CARD_H, CARD_D);
+                const edgeMat = new THREE.MeshStandardMaterial({
+                    color: 0x221a0a, metalness: 0.7, roughness: 0.3
+                });
+                const frontMat = new THREE.MeshStandardMaterial({
+                    map: tex, roughness: 0.25, metalness: 0.15
+                });
+                const backMat = new THREE.MeshStandardMaterial({
+                    color: 0x111122, roughness: 0.6, emissive: 0x221144, emissiveIntensity: 0.4
+                });
+                const mesh = new THREE.Mesh(geom, [edgeMat, edgeMat, edgeMat, edgeMat, frontMat, backMat]);
+                mesh.userData.cardData = data;
+                return mesh;
+            };
+
+            const initOnce = () => {
+                if (aScene) return;
+                aScene = new THREE.Scene();
+                aScene.background = new THREE.Color(0x07070d);
+                aScene.fog = new THREE.FogExp2(0x07070d, 0.025);
+
+                aCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
+                aCamera.position.set(0, 4, 22);
+
+                aRenderer = new THREE.WebGLRenderer({ antialias: true });
+                aRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                canvasParent.appendChild(aRenderer.domElement);
+
+                aControls = new OrbitControls(aCamera, aRenderer.domElement);
+                aControls.enableDamping = true;
+                aControls.dampingFactor = 0.08;
+                aControls.minDistance = 3;
+                aControls.maxDistance = 60;
+
+                aScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+                const key = new THREE.DirectionalLight(0xffe0a0, 1.2);
+                key.position.set(5, 10, 8);
+                aScene.add(key);
+                const rim = new THREE.PointLight(0x8866ff, 60, 40);
+                rim.position.set(-8, 4, -6);
+                aScene.add(rim);
+
+                raycaster = new THREE.Raycaster();
+                mouse = new THREE.Vector2();
+
+                aRenderer.domElement.addEventListener('click', onCanvasClick);
+                window.addEventListener('resize', resize);
+            };
+
+            const onCanvasClick = (ev) => {
+                const rect = aRenderer.domElement.getBoundingClientRect();
+                mouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, aCamera);
+                const hits = raycaster.intersectObjects(cardMeshes, false);
+                if (hits.length > 0) {
+                    focusOn(hits[0].object);
+                } else {
+                    blurFocus();
+                }
+            };
+
+            const focusOn = (mesh) => {
+                if (focusedMesh && focusedMesh !== mesh) restoreFocused();
+                focusedMesh = mesh;
+                focusedOriginal = {
+                    pos: mesh.position.clone(),
+                    rot: mesh.rotation.clone(),
+                    scale: mesh.scale.clone()
+                };
+                // 把卡牌移至相机前方
+                const target = new THREE.Vector3();
+                aCamera.getWorldDirection(target);
+                const focusPos = aCamera.position.clone().add(target.multiplyScalar(6));
+                mesh.userData.focusing = true;
+                mesh.userData.focusPos = focusPos;
+                aControls.autoRotate = false;
+                if (onSelect) onSelect(mesh.userData.cardData);
+            };
+
+            const restoreFocused = () => {
+                if (!focusedMesh || !focusedOriginal) return;
+                focusedMesh.userData.focusing = false;
+                focusedMesh.userData.restoring = focusedOriginal;
+                focusedMesh = null;
+                focusedOriginal = null;
+            };
+
+            const blurFocus = () => {
+                restoreFocused();
+                if (onSelect) onSelect(null);
+            };
+
+            const clearCards = () => {
+                cardMeshes.forEach(m => {
+                    aScene.remove(m);
+                    m.geometry.dispose();
+                });
+                cardMeshes = [];
+                focusedMesh = null;
+                focusedOriginal = null;
+            };
+
+            const applyLayout = (layoutName) => {
+                const layoutFn = AlbumLayouts[layoutName] || AlbumLayouts.grid;
+                cardMeshes.forEach((mesh, i) => {
+                    const t = layoutFn(cardMeshes.length, i);
+                    mesh.userData.targetPos = new THREE.Vector3(t.x, t.y, t.z);
+                    mesh.userData.targetRotY = t.rotY;
+                });
+            };
+
+            const populate = async (cards, layoutName) => {
+                clearCards();
+                for (const data of cards) {
+                    const mesh = await buildCard(data);
+                    mesh.position.set(0, 30, 0);
+                    aScene.add(mesh);
+                    cardMeshes.push(mesh);
+                }
+                applyLayout(layoutName);
+            };
+
+            const resize = () => {
+                if (!aRenderer || !running) return;
+                const w = canvasParent.clientWidth;
+                const h = canvasParent.clientHeight;
+                aRenderer.setSize(w, h, false);
+                aCamera.aspect = w / h;
+                aCamera.updateProjectionMatrix();
+            };
+
+            const tick = () => {
+                if (!running) return;
+                requestAnimationFrame(tick);
+
+                cardMeshes.forEach(m => {
+                    if (m.userData.focusing && m.userData.focusPos) {
+                        m.position.lerp(m.userData.focusPos, 0.12);
+                        m.rotation.y += 0.015; // 自动360°缓慢旋转
+                    } else if (m.userData.restoring) {
+                        m.position.lerp(m.userData.restoring.pos, 0.12);
+                        m.rotation.y = THREE.MathUtils.lerp(m.rotation.y, m.userData.restoring.rot.y, 0.12);
+                        m.scale.lerp(m.userData.restoring.scale, 0.12);
+                        if (m.position.distanceTo(m.userData.restoring.pos) < 0.05) {
+                            m.userData.restoring = null;
+                        }
+                    } else if (m.userData.targetPos) {
+                        m.position.lerp(m.userData.targetPos, 0.08);
+                        m.rotation.y = THREE.MathUtils.lerp(m.rotation.y, m.userData.targetRotY || 0, 0.08);
+                    }
+                });
+
+                aControls.update();
+                aRenderer.render(aScene, aCamera);
+            };
+
+            return {
+                attach(parent, selectHandler) {
+                    canvasParent = parent;
+                    onSelect = selectHandler;
+                    initOnce();
+                },
+                start() {
+                    running = true;
+                    resize();
+                    tick();
+                },
+                stop() {
+                    running = false;
+                },
+                load: populate,
+                setLayout: applyLayout,
+                resize,
+                blurFocus
+            };
+        })();
+
+        /* ---------- 5. 详情面板渲染 ---------- */
+        const AlbumDetail = (() => {
+            const panel = document.getElementById('album-detail-panel');
+            const elName = document.getElementById('album-detail-name');
+            const elId = document.getElementById('album-detail-id');
+            const elUp = document.getElementById('album-detail-up');
+            const elRev = document.getElementById('album-detail-rev');
+            const elList = document.getElementById('album-history-list');
+            const elCount = document.getElementById('album-history-count');
+            const elHint = document.getElementById('album-rotate-hint');
+
+            const fmtTime = (ts) => {
+                const d = new Date(ts);
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            };
+
+            return {
+                show(data) {
+                    if (!data) {
+                        panel.classList.remove('active');
+                        elHint.classList.remove('active');
+                        return;
+                    }
+                    elName.textContent = data.name;
+                    elId.textContent = data.id.toUpperCase();
+                    elUp.textContent = data.up;
+                    elRev.textContent = data.rev;
+                    const history = CollectionStore.historyOf(data.id);
+                    elCount.textContent = history.length;
+                    elList.innerHTML = history.map(h => `
+                        <li>
+                            <span>${fmtTime(h.at)}</span>
+                            <span class="${h.reversed ? 'tag-rev' : 'tag-up'}">${h.reversed ? '逆位' : '正位'}</span>
+                        </li>
+                    `).join('') || '<li><span>暂无记录</span></li>';
+                    panel.classList.add('active');
+                    elHint.classList.add('active');
+                }
+            };
+        })();
+
+        /* ---------- 6. 控制器 ---------- */
+        const AlbumController = (() => {
+            const overlay = document.getElementById('album-overlay');
+            const wrap = document.getElementById('album-canvas-wrap');
+            const btnOpen = document.getElementById('btn-album');
+            const btnClose = document.getElementById('album-close');
+            const empty = document.getElementById('album-empty');
+            const progress = document.getElementById('album-progress');
+            const layoutBtns = document.querySelectorAll('.layout-btn');
+            let currentLayout = 'grid';
+            let attached = false;
+
+            const refreshProgress = () => {
+                progress.textContent = `已收集 ${CollectionStore.unlockedCount()} / ${CollectionStore.totalCount()}`;
+            };
+
+            const reload = async () => {
+                const cards = CollectionStore.listUnlocked();
+                refreshProgress();
+                if (cards.length === 0) {
+                    empty.classList.add('active');
+                    await AlbumScene.load([], currentLayout);
+                } else {
+                    empty.classList.remove('active');
+                    await AlbumScene.load(cards, currentLayout);
+                }
+            };
+
+            const open = async () => {
+                overlay.classList.add('active');
+                if (!attached) {
+                    AlbumScene.attach(wrap, (data) => AlbumDetail.show(data));
+                    attached = true;
+                }
+                AlbumScene.start();
+                requestAnimationFrame(() => AlbumScene.resize());
+                AlbumDetail.show(null);
+                await reload();
+            };
+
+            const close = () => {
+                overlay.classList.remove('active');
+                AlbumScene.stop();
+                AlbumScene.blurFocus();
+                AlbumDetail.show(null);
+            };
+
+            const switchLayout = (name) => {
+                currentLayout = name;
+                layoutBtns.forEach(b => b.classList.toggle('active', b.dataset.layout === name));
+                AlbumScene.setLayout(name);
+            };
+
+            btnOpen.addEventListener('click', open);
+            btnClose.addEventListener('click', close);
+            overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('active')) close();
+            });
+            layoutBtns.forEach(btn => {
+                btn.addEventListener('click', () => switchLayout(btn.dataset.layout));
+            });
+            window.addEventListener('resize', () => {
+                if (overlay.classList.contains('active')) AlbumScene.resize();
+            });
+            // 抽卡完成后实时刷新（图鉴打开时）
+            document.addEventListener('album:updated', () => {
+                if (overlay.classList.contains('active')) reload();
+            });
+
+            // 初始进度展示
+            refreshProgress();
+            return { open, close };
+        })();
 
 
     </script>
