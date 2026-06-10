@@ -33,6 +33,10 @@ export class GalleryApp {
             this.controller.on('cardSelect', (cardData) => {
                 this._onCardSelect(cardData);
             });
+            
+            this.controller.on('closeDetail', () => {
+                this.uiManager.hideDetailPanel();
+            });
         }
         
         this.controller.show();

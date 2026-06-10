@@ -43,9 +43,16 @@ export class GalleryController {
         this.currentLayout = LayoutType.GRID;
         this.isDetailMode = false;
         this.detailCard = null;
+        this.detailAutoRotate = true;
+        this.detailRotateSpeed = 0.8;
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
         this.hoveredCard = null;
+        this.isDragging = false;
+        this._dragMoved = false;
+        this.previousMousePosition = { x: 0, y: 0 };
+        this.savedCameraPosition = new THREE.Vector3();
+        this.savedCameraTarget = new THREE.Vector3();
         
         this.isVisible = false;
         this.animationId = null;
@@ -119,6 +126,9 @@ export class GalleryController {
         window.addEventListener('resize', () => this._onResize());
         this.renderer.domElement.addEventListener('mousemove', (e) => this._onMouseMove(e));
         this.renderer.domElement.addEventListener('click', (e) => this._onClick(e));
+        this.renderer.domElement.addEventListener('mousedown', (e) => this._onMouseDown(e));
+        this.renderer.domElement.addEventListener('mouseup', (e) => this._onMouseUp(e));
+        this.renderer.domElement.addEventListener('mouseleave', (e) => this._onMouseUp(e));
     }
 
     _onResize() {
@@ -135,11 +145,64 @@ export class GalleryController {
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
+        if (this.isDetailMode && this.isDragging && this.detailCard) {
+            const deltaX = event.clientX - this.previousMousePosition.x;
+            const deltaY = event.clientY - this.previousMousePosition.y;
+            
+            if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+                this._dragMoved = true;
+            }
+            
+            this.detailCard.mesh.rotation.y += deltaX * 0.01;
+            this.detailCard.mesh.rotation.x += deltaY * 0.01;
+            
+            this.previousMousePosition.x = event.clientX;
+            this.previousMousePosition.y = event.clientY;
+            this.detailAutoRotate = false;
+            return;
+        }
+        
         this._updateHover();
+    }
+
+    _onMouseDown(event) {
+        if (this.isDetailMode && event.button === 0) {
+            this.isDragging = true;
+            this._dragMoved = false;
+            this.previousMousePosition.x = event.clientX;
+            this.previousMousePosition.y = event.clientY;
+            this.renderer.domElement.style.cursor = 'grabbing';
+        }
+    }
+
+    _onMouseUp(event) {
+        if (this.isDragging) {
+            this.isDragging = false;
+            this.renderer.domElement.style.cursor = 'grab';
+            
+            if (this._dragMoved) {
+                setTimeout(() => {
+                    this.detailAutoRotate = true;
+                }, 2000);
+            }
+        }
     }
 
     _onClick(event) {
         if (this.isDetailMode) {
+            if (this._dragMoved) {
+                this._dragMoved = false;
+                return;
+            }
+            
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            const meshes = [this.detailCard.mesh];
+            const intersects = this.raycaster.intersectObjects(meshes);
+            
+            if (intersects.length === 0) {
+                this.closeDetail();
+                this._notify('closeDetail');
+            }
             return;
         }
         
@@ -253,24 +316,49 @@ export class GalleryController {
         
         this.isDetailMode = true;
         this.detailCard = card;
+        this.detailAutoRotate = true;
         
         card.saveOriginalState();
         
-        const targetPos = new THREE.Vector3(0, 0, 2);
+        this.savedCameraPosition.copy(this.camera.position);
+        this.savedCameraTarget.copy(this.controls.target);
+        
+        const targetPos = new THREE.Vector3(0, 0, 0);
         const targetRot = new THREE.Euler(0, 0, 0);
         const targetScale = 1.5;
         
         this._animateToDetail(card, targetPos, targetRot, targetScale);
         
         this.controls.enablePan = false;
-        this.controls.autoRotate = true;
-        this.controls.autoRotateSpeed = 0.3;
+        this.controls.enabled = false;
         this.controls.minDistance = 3;
-        this.controls.maxDistance = 15;
+        this.controls.maxDistance = 20;
         
-        setTimeout(() => {
-            this.controls.target.copy(targetPos);
-        }, 100);
+        const cameraTargetPos = new THREE.Vector3(0, 0, 8);
+        this._animateCameraTo(cameraTargetPos, targetPos, 500);
+    }
+
+    _animateCameraTo(targetPos, targetLookAt, duration) {
+        const startPos = this.camera.position.clone();
+        const startTarget = this.controls.target.clone();
+        const startTime = Date.now();
+        
+        const animate = () => {
+            if (!this.isDetailMode) return;
+            
+            const elapsed = Date.now() - startTime;
+            const t = Math.min(elapsed / duration, 1);
+            const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+            
+            this.camera.position.lerpVectors(startPos, targetPos, ease);
+            this.controls.target.lerpVectors(startTarget, targetLookAt, ease);
+            
+            if (t < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        animate();
     }
 
     _animateToDetail(card, targetPos, targetRot, targetScale) {
@@ -309,14 +397,16 @@ export class GalleryController {
         const card = this.detailCard;
         this.isDetailMode = false;
         this.detailCard = null;
+        this.detailAutoRotate = false;
+        this.isDragging = false;
         
         card.restoreOriginalState();
         
         this.controls.enablePan = true;
+        this.controls.enabled = true;
         this.controls.autoRotate = false;
         
-        const cameraSetup = layoutManager.getCameraForLayout(this.currentLayout, this.cards.length);
-        this.controls.target.copy(cameraSetup.target);
+        this._animateCameraTo(this.savedCameraPosition, this.savedCameraTarget, 400);
     }
 
     nextLayout() {
@@ -342,10 +432,18 @@ export class GalleryController {
     _startAnimation() {
         if (this.animationId) return;
         
+        let lastTime = Date.now() * 0.001;
+        
         const animate = () => {
             this.animationId = requestAnimationFrame(animate);
             
             const time = Date.now() * 0.001;
+            const delta = time - lastTime;
+            lastTime = time;
+            
+            if (this.isDetailMode && this.detailCard && this.detailAutoRotate) {
+                this.detailCard.mesh.rotation.y += delta * this.detailRotateSpeed;
+            }
             
             if (!this.isDetailMode) {
                 for (const card of this.cards) {
