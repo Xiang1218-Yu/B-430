@@ -296,6 +296,14 @@
             #detail-name {
                 font-size: 24px;
             }
+
+            #btn-gallery {
+                display: none;
+            }
+        }
+
+        #action-shelf .icon-btn {
+            text-decoration: none;
         }
     </style>
 </head>
@@ -349,6 +357,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { galleryApp } from './js/gallery-app.js';
 
         console.log("MysticTarot Module Loading...");
 
@@ -669,6 +678,8 @@
         }
 
         function saveToHistory(data, isRev) {
+            galleryApp.addDraw(data, isRev);
+            
             const list = document.getElementById('history-list');
             const item = document.createElement('div');
             item.className = 'history-card';
@@ -1005,6 +1016,18 @@
 
         animate();
         setupMediaPipe();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'g' || e.key === 'G') {
+                if (galleryApp.isOpen) {
+                    galleryApp.close();
+                } else {
+                    galleryApp.open();
+                }
+            }
+        });
+
+        window.galleryApp = galleryApp;
 
 
     </script>
