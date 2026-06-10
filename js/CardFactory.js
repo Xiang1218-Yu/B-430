@@ -131,6 +131,8 @@ class CardFactory {
       showBack = false
     } = options;
 
+    const group = new THREE.Group();
+
     const geom = new THREE.BoxGeometry(width, height, depth);
 
     let frontTex;
@@ -143,7 +145,7 @@ class CardFactory {
     const backTex = this.generateBackTexture();
 
     const goldMaterial = new THREE.MeshStandardMaterial({
-      color: 0x221a0a,
+      color: locked ? 0x333333 : 0x221a0a,
       metalness: 0.8,
       roughness: 0.2
     });
@@ -165,14 +167,73 @@ class CardFactory {
     ];
 
     const mesh = new THREE.Mesh(geom, mats);
-    mesh.userData = {
+    group.add(mesh);
+
+    if (!locked) {
+      const borderWidth = width + 0.08;
+      const borderHeight = height + 0.08;
+      const borderDepth = depth + 0.04;
+      const borderGeom = new THREE.BoxGeometry(borderWidth, borderHeight, borderDepth);
+      
+      const borderMat = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        emissive: 0xffd700,
+        emissiveIntensity: 0.3,
+        metalness: 1.0,
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.9
+      });
+      
+      const borderMesh = new THREE.Mesh(borderGeom, borderMat);
+      borderMesh.position.z = -0.02;
+      group.add(borderMesh);
+      group.userData.borderMesh = borderMesh;
+
+      const gemGeom = new THREE.OctahedronGeometry(0.12, 0);
+      const gemMat = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        emissive: 0xffaa00,
+        emissiveIntensity: 1.0,
+        metalness: 1.0,
+        roughness: 0.0
+      });
+      const gem = new THREE.Mesh(gemGeom, gemMat);
+      gem.position.set(0, height / 2 - 0.05, depth / 2 + 0.05);
+      group.add(gem);
+      group.userData.gemMesh = gem;
+
+      const glowGeom = new THREE.PlaneGeometry(width * 1.3, height * 1.3);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: 0xffd700,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const glow = new THREE.Mesh(glowGeom, glowMat);
+      glow.position.z = -depth / 2 - 0.01;
+      group.add(glow);
+      group.userData.glowMesh = glow;
+
+      const pointLight = new THREE.PointLight(0xffd700, 0.5, 3);
+      pointLight.position.set(0, 0, 1);
+      group.add(pointLight);
+      group.userData.glowLight = pointLight;
+    }
+
+    group.userData = {
+      ...group.userData,
       cardId: cardData.id,
       cardData: cardData,
       locked,
-      originalMaterials: mats
+      cardMesh: mesh,
+      originalMaterials: mats,
+      originalScale: 1
     };
 
-    return mesh;
+    return group;
   }
 
   createLockIndicator(cardData) {

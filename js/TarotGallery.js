@@ -153,6 +153,17 @@ class TarotGallery {
     this.renderer.domElement.addEventListener('click', (e) => this._onClick(e));
   }
 
+  _findParentGroup(obj) {
+    let current = obj;
+    while (current) {
+      if (current.userData && current.userData.cardData) {
+        return current;
+      }
+      current = current.parent;
+    }
+    return null;
+  }
+
   _onMouseMove(e) {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this._mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -241,6 +252,11 @@ class TarotGallery {
   async open() {
     this.isOpen = true;
     this.controls.enabled = true;
+    
+    requestAnimationFrame(() => {
+      this._onResize();
+    });
+    
     await this._createGalleryCards();
     this.ui.setLayout(this.ui.currentLayout);
   }
@@ -255,14 +271,15 @@ class TarotGallery {
     this._applyLayout(layout, true);
   }
 
-  openCardViewer(mesh) {
-    const cardData = mesh.userData.cardData;
+  openCardViewer(group) {
+    const cardData = group.userData.cardData;
     const stats = this.storage.getCardStats(cardData.id);
     const history = this.storage.getDrawHistory(cardData.id, 20);
 
     this.ui.showCardDetails(cardData, stats, history);
 
-    this.viewer.setCard(mesh, cardData);
+    const cardMesh = group.userData.cardMesh;
+    this.viewer.setCard(cardMesh, cardData);
     this.ui.showViewer();
     this.viewer.show();
   }
@@ -280,23 +297,31 @@ class TarotGallery {
     if (!this.isOpen) return;
 
     this._raycaster.setFromCamera(this._mouse, this.camera);
-    const intersects = this._raycaster.intersectObjects(this.cardMeshes);
+    const allMeshes = [];
+    this.cardMeshes.forEach(group => {
+      group.traverse((child) => {
+        if (child.isMesh) {
+          allMeshes.push(child);
+        }
+      });
+    });
+    const intersects = this._raycaster.intersectObjects(allMeshes);
 
     if (intersects.length > 0) {
-      const mesh = intersects[0].object;
-      if (this.hoveredCard !== mesh) {
+      const group = this._findParentGroup(intersects[0].object);
+      if (group && this.hoveredCard !== group) {
         if (this.hoveredCard && !this.hoveredCard.userData.locked) {
           this.hoveredCard.scale.setScalar(this.hoveredCard.userData.originalScale);
         }
-        this.hoveredCard = mesh;
-        if (!mesh.userData.locked) {
+        this.hoveredCard = group;
+        if (!group.userData.locked) {
           this.renderer.domElement.style.cursor = 'pointer';
         } else {
           this.renderer.domElement.style.cursor = 'not-allowed';
         }
       }
-      if (!mesh.userData.locked) {
-        mesh.scale.setScalar(mesh.userData.originalScale * 1.1);
+      if (group && !group.userData.locked) {
+        group.scale.setScalar(group.userData.originalScale * 1.1);
       }
     } else {
       if (this.hoveredCard && !this.hoveredCard.userData.locked) {
@@ -328,10 +353,34 @@ class TarotGallery {
       this._updateHover();
       this.controls.update();
 
-      this.cardMeshes.forEach((mesh, i) => {
-        if (mesh !== this.hoveredCard) {
+      this.cardMeshes.forEach((group, i) => {
+        if (group !== this.hoveredCard) {
           const floatOffset = i * 0.3;
-          mesh.position.y += Math.sin(time * 1.5 + floatOffset) * 0.002;
+          group.position.y += Math.sin(time * 1.5 + floatOffset) * 0.002;
+        }
+
+        if (!group.userData.locked) {
+          const gem = group.userData.gemMesh;
+          if (gem) {
+            gem.rotation.y = time * 2;
+            gem.rotation.x = Math.sin(time * 3) * 0.3;
+          }
+
+          const glow = group.userData.glowMesh;
+          const border = group.userData.borderMesh;
+          const glowLight = group.userData.glowLight;
+          if (glow) {
+            const pulse = 0.12 + Math.sin(time * 2 + i * 0.5) * 0.08;
+            glow.material.opacity = pulse;
+          }
+          if (border) {
+            const pulse = 0.25 + Math.sin(time * 2 + i * 0.5) * 0.1;
+            border.material.emissiveIntensity = pulse;
+          }
+          if (glowLight) {
+            const pulse = 0.3 + Math.sin(time * 2 + i * 0.5) * 0.2;
+            glowLight.intensity = pulse;
+          }
         }
       });
     }
