@@ -39,66 +39,85 @@ export class GalleryLayout {
   }
 
   static _spiral(count, opts) {
-    const turns = opts.turns || 3;
-    const radiusGrowth = opts.radiusGrowth || 0.4;
-    const heightGrowth = opts.heightGrowth || 0.6;
+    const cardArcWidth = opts.cardArcWidth || 3.0;
     const positions = [];
 
-    for (let i = 0; i < count; i++) {
-      const t = i / Math.max(count - 1, 1);
-      const angle = t * turns * Math.PI * 2;
-      const radius = 2 + t * radiusGrowth * count * 0.3;
-      const y = t * heightGrowth * count * 0.3 - (heightGrowth * count * 0.15);
+    let angle = 0;
+    let radius = 4;
 
+    for (let i = 0; i < count; i++) {
       positions.push({
         x: Math.cos(angle) * radius,
-        y: y,
+        y: 0,
         z: Math.sin(angle) * radius,
         rotY: -angle + Math.PI,
         rotX: 0
       });
+
+      const arcStep = cardArcWidth / Math.max(radius, 1);
+      angle += arcStep;
+      radius += arcStep * 0.5;
     }
 
     return positions;
   }
 
   static _ring(count, opts) {
-    const rings = opts.rings || 3;
-    const baseRadius = opts.baseRadius || 5;
-    const radiusStep = opts.radiusStep || 4;
+    const cardWidth = opts.cardWidth || 2.5;
+    const ringGap = opts.ringGap || 4.0;
     const positions = [];
 
-    let placed = 0;
-    for (let ring = 0; ring < rings && placed < count; ring++) {
-      const radius = baseRadius + ring * radiusStep;
-      const maxInRing = ring === 0 ? 1 : Math.floor(2 * Math.PI * radius / 3.2);
-      const inThisRing = Math.min(maxInRing, count - placed);
+    let remaining = count;
+    let ringIndex = 0;
+
+    while (remaining > 0) {
+      const radius = ringIndex === 0 ? 0 : ringIndex * ringGap;
+      let inThisRing;
+
+      if (ringIndex === 0) {
+        inThisRing = Math.min(1, remaining);
+      } else {
+        const circumference = 2 * Math.PI * radius;
+        inThisRing = Math.min(Math.floor(circumference / cardWidth), remaining);
+      }
 
       for (let i = 0; i < inThisRing; i++) {
-        const angle = (i / inThisRing) * Math.PI * 2 - Math.PI / 2;
-        positions.push({
-          x: Math.cos(angle) * radius,
-          y: ring * 0.5,
-          z: Math.sin(angle) * radius,
-          rotY: -angle + Math.PI,
-          rotX: 0
-        });
-        placed++;
+        if (ringIndex === 0) {
+          positions.push({
+            x: 0,
+            y: 0,
+            z: 0,
+            rotY: 0,
+            rotX: 0
+          });
+        } else {
+          const angle = (i / inThisRing) * Math.PI * 2 - Math.PI / 2;
+          positions.push({
+            x: Math.cos(angle) * radius,
+            y: 0,
+            z: Math.sin(angle) * radius,
+            rotY: -angle + Math.PI,
+            rotX: 0
+          });
+        }
       }
+
+      remaining -= inThisRing;
+      ringIndex++;
     }
 
     return positions;
   }
 
   static getCameraPosition(layoutType, cardCount) {
-    const extent = Math.max(cardCount * 0.3, 8);
+    const extent = Math.max(cardCount * 0.5, 8);
     switch (layoutType) {
       case this.GRID:
         return { x: 0, y: 0, z: extent + 8 };
       case this.SPIRAL:
-        return { x: 0, y: extent * 0.3, z: extent + 5 };
+        return { x: 0, y: extent * 0.6, z: extent + 5 };
       case this.RING:
-        return { x: 0, y: extent * 0.5, z: extent + 5 };
+        return { x: 0, y: extent * 0.8, z: extent + 3 };
       default:
         return { x: 0, y: 0, z: extent + 8 };
     }

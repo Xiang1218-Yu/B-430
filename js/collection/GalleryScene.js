@@ -96,6 +96,7 @@ export class GalleryScene {
       if (i < positions.length) {
         const mesh = this.cardMeshes[i];
         const target = positions[i];
+        mesh.userData.targetPos = target;
         this._animateCardTo(mesh, target);
       }
     }
@@ -241,6 +242,7 @@ export class GalleryScene {
 
   _animateCardTo(mesh, target, delay = 0) {
     const startPos = mesh.position.clone();
+    const startRotY = mesh.rotation.y;
     const startTime = Date.now() + delay;
     const duration = 800;
 
@@ -255,7 +257,7 @@ export class GalleryScene {
       const ease = 1 - Math.pow(1 - t, 3);
 
       mesh.position.lerpVectors(startPos, new THREE.Vector3(target.x, target.y, target.z), ease);
-      mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, target.rotY, ease);
+      mesh.rotation.y = THREE.MathUtils.lerp(startRotY, target.rotY, ease);
 
       if (t < 1) requestAnimationFrame(tick);
     };
@@ -277,6 +279,7 @@ export class GalleryScene {
         new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z),
         ease
       );
+      this.controls.target.set(0, 0, 0);
 
       if (t < 1) requestAnimationFrame(tick);
     };
