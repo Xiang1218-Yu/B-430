@@ -335,6 +335,8 @@
             (Space)</button>
         <button class="icon-btn" id="btn-mode"
             style="background: rgba(255,215,0,0.2); border-color: #ffd700; color: #ffd700;">切换交互模式</button>
+        <button class="icon-btn" id="btn-gallery"
+            style="background: rgba(255,215,0,0.15); border-color: #ffd700; color: #ffd700;">📖 图鉴</button>
     </div>
 
     <script type="importmap">
@@ -349,6 +351,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GalleryApp } from './js/collection/GalleryApp.js';
 
         console.log("MysticTarot Module Loading...");
 
@@ -538,6 +541,12 @@
             return texture;
         }
 
+        const galleryApp = new GalleryApp({
+            tarotDB: TAROT_DB,
+            loadCardTexture: loadCardTexture,
+            generateProceduralTexture: generateProceduralTexture
+        });
+
         async function createCard(data, isReversed) {
             const geom = new THREE.BoxGeometry(2.4, 4.2, 0.12);
 
@@ -677,6 +686,8 @@
                 <span class="${isRev ? 'tag-rev' : 'tag-up'}">${isRev ? '逆位' : '正位'}</span>
             `;
             list.prepend(item);
+
+            galleryApp.recordDraw(data.id, data.name, isRev);
         }
 
         // --- 手势教程与权限引导 ---
@@ -986,6 +997,9 @@
         // --- 绑定 ---
         document.getElementById('btn-draw').addEventListener('click', triggerDraw);
         document.getElementById('btn-mode').addEventListener('click', toggleInteractionMode);
+        document.getElementById('btn-gallery').addEventListener('click', () => {
+            galleryApp.open();
+        });
 
         initScene();
 
