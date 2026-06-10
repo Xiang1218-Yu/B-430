@@ -349,6 +349,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { TarotGallery } from './js/TarotGallery.js';
 
         console.log("MysticTarot Module Loading...");
 
@@ -384,6 +385,7 @@
         let particlesSystem = null;
         let interactionMode = 'GESTURE'; // GESTURE, MOUSE
         let appState = 'IDLE'; // IDLE, DRAWING, HOVERING, ASHING
+        let tarotGallery = null;
 
         // --- 资源配置 ---
         const ASSETS_CONFIG = {
@@ -677,6 +679,10 @@
                 <span class="${isRev ? 'tag-rev' : 'tag-up'}">${isRev ? '逆位' : '正位'}</span>
             `;
             list.prepend(item);
+
+            if (tarotGallery) {
+                tarotGallery.recordDraw(data.id, isRev);
+            }
         }
 
         // --- 手势教程与权限引导 ---
@@ -988,6 +994,8 @@
         document.getElementById('btn-mode').addEventListener('click', toggleInteractionMode);
 
         initScene();
+
+        tarotGallery = new TarotGallery(TAROT_DB);
 
         // 增强：点击 3D 场景触发交互（确保在 initScene 之后绑定）
         renderer.domElement.addEventListener('click', () => {
